@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交互式 Google Drive CLIENT_ID 获取指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 
+        Chosen Palette: Calm Harmony (Slate/Gray neutrals, Muted Blue accent)
+        Application Structure Plan: An interactive stepper/wizard interface. A vertical navigation bar shows the 6 steps, and a main content area displays the details for the active step. Users can navigate sequentially with "Next/Previous" buttons or jump to any step via the navigation bar. This structure chunks the instructional content, making it less overwhelming and easier to follow than a single long document.
+        Visualization & Content Choices: The source is a text-based tutorial. The primary "visualization" is the process flow itself, represented by the interactive stepper. Goal: Inform/Guide. Method: HTML/CSS for structured text, Vanilla JS for interactivity. Interaction: Clicking steps or buttons updates the displayed content. Justification: This transforms a static document into an interactive, user-controlled guide, enhancing usability. No charts needed.
+        CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+        .step-nav-item.active {
+            background-color: #e0f2fe; /* light-blue-100 */
+            color: #0284c7; /* sky-600 */
+            border-left-color: #0284c7; /* sky-600 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">如何获取 Google Drive API 客户端 ID</h1>
+            <p class="mt-2 text-lg text-slate-600">一个将静态文档转化为交互式体验的分步指南</p>
+        </header>
+
+        <main class="bg-white rounded-xl shadow-lg overflow-hidden md:flex">
+            <nav id="step-navigation" class="w-full md:w-1/3 lg:w-1/4 border-b md:border-b-0 md:border-r border-slate-200">
+                <ul>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="0">
+                        <span class="font-bold text-sky-700">步骤 1</span>
+                        <p class="font-medium text-slate-700 mt-1">访问 Google Cloud Console</p>
+                    </li>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="1">
+                        <span class="font-bold text-sky-700">步骤 2</span>
+                        <p class="font-medium text-slate-700 mt-1">选择或创建项目</p>
+                    </li>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="2">
+                        <span class="font-bold text-sky-700">步骤 3</span>
+                        <p class="font-medium text-slate-700 mt-1">启用 Google Drive API</p>
+                    </li>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="3">
+                        <span class="font-bold text-sky-700">步骤 4</span>
+                        <p class="font-medium text-slate-700 mt-1">配置 OAuth 同意屏幕</p>
+                    </li>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="4">
+                        <span class="font-bold text-sky-700">步骤 5</span>
+                        <p class="font-medium text-slate-700 mt-1">创建 OAuth 客户端 ID</p>
+                    </li>
+                    <li class="step-nav-item border-l-4 border-transparent p-4 md:p-6 cursor-pointer transition-colors duration-200 hover:bg-slate-100" data-step="5">
+                        <span class="font-bold text-sky-700">步骤 6</span>
+                        <p class="font-medium text-slate-700 mt-1">获取 CLIENT_ID</p>
+                    </li>
+                </ul>
+            </nav>
+
+            <div id="steps-container" class="flex-1 p-6 md:p-8 lg:p-10">
+                
+                <div class="step-content" data-step-content="0">
+                    <h2 class="text-2xl font-bold mb-4">步骤 1: 访问 Google Cloud Console</h2>
+                    <div class="prose max-w-none text-slate-700">
+                        <p>首先，您需要登录到 Google Cloud 的管理界面。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>打开您的网络浏览器，访问 <a href="https://console.cloud.google.com/" target="_blank" class="text-sky-600 hover:underline font-medium">Google Cloud Console</a>。</li>
+                            <li>使用您的 Google 账户登录。</li>
+                        </ul>
+                        <img src="https://placehold.co/600x300/e0f2fe/0284c7?text=Google+Cloud+Console+登录页面" alt="Google Cloud Console 登录页面示意图" class="mt-4 rounded-lg w-full">
+                    </div>
+                </div>
+
+                <div class="step-content" data-step-content="1">
+                    <h2 class="text-2xl font-bold mb-4">步骤 2: 选择或创建项目</h2>
+                    <div class="prose max-w-none text-slate-700">
+                        <p>API 需要在一个项目中进行管理。您可以选择一个现有项目，或创建一个新项目。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>在页面顶部的导航栏中，点击项目选择器（通常显示当前项目名称或“选择项目”）。</li>
+                            <li>选择一个现有项目，或者点击“新建项目”创建一个新项目。</li>
+                            <li>为新项目命名（例如：“我的云端硬盘应用”），然后点击“创建”。</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="step-content" data-step-content="2">
+                    <h2 class="text-2xl font-bold mb-4">步骤 3: 启用 Google Drive API</h2>
+                    <div class="prose max-w-none text-slate-700">
+                        <p>为了让您的项目能够使用 Drive 的功能，您必须先启用相关的 API。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>项目创建完成后，在左侧导航菜单中，点击“API 和服务” > “库”。</li>
+                            <li>在搜索框中输入 <code class="bg-slate-200 text-sm font-mono px-1 rounded">Google Drive API</code>，然后从搜索结果中选择它。</li>
+                            <li>点击“启用”按钮来启用 Google Drive API。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step-content" data-step-content="3">
+                    <h2 class="text-2xl font-bold mb-4">步骤 4: 配置 OAuth 同意屏幕</h2>
+                    <div class="prose max-w-none text-slate-700">
+                        <p>这是用户授权您的应用访问其数据时看到的界面。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>在左侧导航菜单中，点击“API 和服务” > “OAuth 同意屏幕”。</li>
+                            <li><strong>用户类型：</strong>
+                                <ul class="list-disc pl-5">
+                                    <li>如果您是为自己或组织内部使用，选择“内部”。</li>
+                                    <li>如果您是为外部用户或公开应用，选择“外部”。（外部应用需要 Google 审核）</li>
+                                </ul>
+                            </li>
+                            <li>点击“创建”，并填写应用信息（应用名称、用户支持电子邮件等）。</li>
+                            <li>在“范围”步骤中，点击“添加或移除范围”，搜索并添加 <code class="bg-slate-200 text-sm font-mono px-1 rounded">.../auth/drive</code> 范围。</li>
+                            <li>如果需要，添加测试用户，然后保存配置。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step-content" data-step-content="4">
+                    <h2 class="text-2xl font-bold mb-4">步骤 5: 创建 OAuth 客户端 ID</h2>
+                     <div class="prose max-w-none text-slate-700">
+                        <p>客户端 ID 用于向 Google 标识您的应用。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>在左侧导航菜单中，点击“API 和服务” > “凭据”。</li>
+                            <li>点击页面顶部的“创建凭据”按钮，然后选择“OAuth 客户端 ID”。</li>
+                            <li><strong>应用类型：</strong> 选择“Web 应用程序”。</li>
+                            <li><strong>授权的 JavaScript 源：</strong> 这是您的应用程序运行的域。非常重要！
+                                <ul class="list-disc pl-5">
+                                    <li>本地开发: <code class="bg-slate-200 text-sm font-mono px-1 rounded">http://localhost:3000</code></li>
+                                    <li>已部署: <code class="bg-slate-200 text-sm font-mono px-1 rounded">https://your-app-domain.com</code></li>
+                                </ul>
+                            </li>
+                             <li><strong>授权的重定向 URI：</strong> Google 完成授权后将用户重定向到的地址。通常与上面的源相同。</li>
+                            <li>点击“创建”。</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step-content" data-step-content="5">
+                    <h2 class="text-2xl font-bold mb-4">步骤 6: 获取 CLIENT_ID</h2>
+                    <div class="prose max-w-none text-slate-700">
+                        <p>创建成功后，您将看到您的凭据。</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>创建完成后，屏幕上会弹出一个窗口，显示您的“客户端 ID”和“客户端密钥”（如果适用）。</li>
+                            <li><strong>复制您的“客户端 ID”</strong>。它通常以 <code class="bg-slate-200 text-sm font-mono px-1 rounded">.apps.googleusercontent.com</code> 结尾。</li>
+                        </ul>
+                        <div class="mt-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 rounded-r-lg">
+                            <h3 class="font-bold">恭喜！</h3>
+                            <p>现在，您已经成功获取了 <code class="bg-emerald-200 text-sm font-mono px-1 rounded">CLIENT_ID</code>。您可以将其粘贴到您的应用程序中开始使用了。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-200 flex justify-between items-center">
+                    <button id="prev-btn" class="px-6 py-2 bg-slate-200 text-slate-800 font-semibold rounded-lg shadow-sm hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+                        上一步
+                    </button>
+                    <button id="next-btn" class="px-6 py-2 bg-sky-600 text-white font-semibold rounded-lg shadow-sm hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+                        下一步
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stepNavItems = document.querySelectorAll('.step-nav-item');
+            const stepContents = document.querySelectorAll('.step-content');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            let currentStep = 0;
+            const totalSteps = stepNavItems.length;
+
+            function showStep(stepIndex) {
+                stepNavItems.forEach((item, index) => {
+                    item.classList.toggle('active', index === stepIndex);
+                });
+
+                stepContents.forEach((content, index) => {
+                    content.classList.toggle('active', index === stepIndex);
+                });
+
+                prevBtn.disabled = stepIndex === 0;
+                nextBtn.disabled = stepIndex === totalSteps - 1;
+                
+                currentStep = stepIndex;
+            }
+
+            stepNavItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const step = parseInt(item.getAttribute('data-step'), 10);
+                    showStep(step);
+                });
+            });
+
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    showStep(currentStep - 1);
+                }
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < totalSteps - 1) {
+                    showStep(currentStep + 1);
+                }
+            });
+
+            showStep(0);
+        });
+    </script>
+
+</body>
+</html>
