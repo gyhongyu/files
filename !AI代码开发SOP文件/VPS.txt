@@ -1,0 +1,3 @@
+server ip: 4.188.76.209
+account: pansen_user
+password: Z4CKZ*9Kfd8+QBsc

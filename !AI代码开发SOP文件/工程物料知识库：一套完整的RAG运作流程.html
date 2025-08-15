@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工程物料知识库：一套完整的RAG运作流程</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        }
+        .mermaid svg {
+            display: block;
+            margin: auto;
+        }
+        h1, h2, h3 {
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="max-w-4xl mx-auto p-4 sm:p-8">
+        <div class="bg-white rounded-lg shadow-md p-6 sm:p-8">
+            <header class="mb-8 border-b pb-4">
+                <h1 class="text-3xl font-bold text-gray-900">工程物料知识库：一套完整的RAG运作流程</h1>
+                <p class="text-md text-gray-500 mt-2">本方案旨在为工程行业设计一套完整、高效且可靠的物料知识库系统，基于RAG架构，提供精准、可溯源的查询结果。</p>
+            </header>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">一、 核心：数据结构与文件存储策略</h2>
+                
+                <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">1. 数据库结构设计 (Data Structure Design)</h3>
+                <p class="mb-4">成功的关键在于向量数据库中存储的不仅仅是向量，更是包含了丰富上下文的结构化数据。</p>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">字段名 (Field)</th>
+                                <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">类型 (Type)</th>
+                                <th class="px-4 py-2 border-b text-left text-sm font-semibold text-gray-600">描述 (Description)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="px-4 py-2 border-b font-mono text-sm">chunk_id</td>
+                                <td class="px-4 py-2 border-b text-sm">String</td>
+                                <td class="px-4 py-2 border-b text-sm">文本块的唯一标识符</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b font-mono text-sm">vector</td>
+                                <td class="px-4 py-2 border-b text-sm">Array[Float]</td>
+                                <td class="px-4 py-2 border-b text-sm">文本块内容的语义向量</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b font-mono text-sm">content</td>
+                                <td class="px-4 py-2 border-b text-sm">String</td>
+                                <td class="px-4 py-2 border-b text-sm font-semibold">文本块的完整原始内容（缓存）</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-2 border-b font-mono text-sm">metadata</td>
+                                <td class="px-4 py-2 border-b text-sm">JSON Object</td>
+                                <td class="px-4 py-2 border-b text-sm font-semibold">极其关键的元数据</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">2. 元数据 (Metadata) 详细定义</h3>
+                <div class="bg-gray-900 text-white p-4 rounded-lg font-mono text-sm overflow-x-auto">
+<pre><code>{
+  "source_uri": "s3://engineering-docs/catalogs/2023-vendor-a.pdf",
+  "source_type": "PDF",
+  "page_number": 15,
+  "table_name": "螺栓规格表",
+  "document_type": "产品目录",
+  "project_id": "PJ-2023-008",
+  "material_name": "六角头螺栓",
+  "specification": "M6*20",
+  "unit_price": 1.25,
+  "vendor": "供应商A",
+  "timestamp": "2024-08-15T10:30:00Z"
+}</code></pre>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-800 mt-6 mb-3">3. 源文件存储与交互策略</h3>
+                <p class="mb-2"><strong class="text-red-600">核心概念：</strong>大语言模型（LLM）在回答问题时，从不直接与原始文件交互。</p>
+                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                    <li><strong>源文件存储：</strong>所有原始文件都必须存储在一个稳定、可靠、有权限控制的中央存储位置（如 AWS S3, Google Cloud Storage）。</li>
+                    <li><strong>源文件的作用：</strong>仅在“知识库创建时”用于解析，以及在“用户点击引用时”供人类验证。</li>
+                    <li><strong>LLM的交互对象：</strong>LLM只与数据库中缓存的`content`字段交互，保证查询的高效和稳定。</li>
+                </ul>
+            </section>
+
+            <section class="mb-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">二、 流程一：创建知识库 (Ingestion Workflow)</h2>
+                <div class="p-4 border-2 border-dashed rounded-lg bg-gray-50">
+                    <pre class="mermaid">
+graph TD
+    subgraph "系统后台处理"
+        A["1. 上传源文件至中央存储"] --> B{"2. 智能解析与分块"};
+        B --> C{"3. 循环处理每个文本块"};
+        C --> D["a. 提取文本块原文"];
+        D --> E["b. 与向量API交互"];
+        E --> F(("向量"));
+        D --> G["c. (可选)与LLM API交互"];
+        G --> H(("元数据"));
+        F & H --> I["d. 与数据库交互"];
+        I --> J["存入记录<br/>(原文, 向量, 元数据)"];
+        J --> C;
+        C -- "所有块处理完毕" --> K["完成入库"];
+    end
+                    </pre>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">三、 流程二：知识库查询 (Query Workflow)</h2>
+                <div class="p-4 border-2 border-dashed rounded-lg bg-gray-50">
+                    <pre class="mermaid">
+graph TD
+    subgraph "系统后台处理"
+        A["1. 用户输入问题"] --> B["2. 与向量API交互"];
+        B --> C["生成查询向量"];
+        C --> D["3. 与数据库交互"];
+        D --> E["检索Top-K相似记录<br/>(含原文与元数据)"];
+        E --> F["4. 系统后台构建提示词"];
+        F --> G["5. 与大模型(LLM) API交互"];
+        G --> H["生成答案"];
+        E -- "提供引用信息" --> H;
+    end
+    subgraph "用户界面"
+        H --> I["6. 呈现答案与引用链接"];
+    end
+                    </pre>
+                </div>
+                 <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 class="font-semibold text-lg text-blue-800 mb-2">查询举例</h4>
+                    <p class="text-blue-700"><strong>文本查询 (`我要买m6螺丝...`):</strong> 系统将执行上述完整流程，最终返回包含供应商和价格的总结性答案，并附上可点击的引用链接。</p>
+                    <p class="mt-2 text-blue-700"><strong>上传请购单查询:</strong> 系统会解析单据中的每一项物料，为每一项都独立执行一次查询流程，最后汇总所有结果，生成一个综合性的建议清单。</p>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
